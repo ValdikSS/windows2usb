@@ -1,0 +1,192 @@
+#!/bin/bash
+set -e # errexit
+set -f # noglob
+set +o braceexpand # disable braceexpand
+shopt -s nocasematch # for "if labeltype"
+
+export LANG=C
+
+bold="$(tput bold)"
+normal="$(tput sgr0)"
+scriptpath="$(readlink -f -- "$0")"
+dirpath="$(dirname "$scriptpath")"
+
+
+function check_requirements() {
+    local reqs=(awk lsblk 7z mkfs.vfat mkfs.ntfs sfdisk ms-sys mktemp)
+
+    for req in ${reqs[*]}; do
+        if ! command -v "$req" > /dev/null;
+        then
+            echo "${bold} == ERROR: $req is required but not found ==${normal}"
+            exit 104
+        fi
+    done
+}
+
+function list_removable_drives() {
+    lsblk -d -I 8 -o RM,NAME,SIZE,MODEL | \
+        awk '($1 == 1) {print "/dev/" substr($0, index($0, $2))}'
+}
+
+function format_drive() {
+    if [[ "$1" == "dos" ]] || [[ "$1" == "gpt" ]];
+    then
+        echo "label: $1" | sfdisk "$2"
+    else
+        echo "${bold} == format_drive: INTERNAL ERROR ==${normal}"
+        exit 101
+    fi
+}
+
+function check_installwim_gt4gib() {
+    7z l "$1" | awk '($6 ~ /install.wim/) {if ($4 > 429496296) {exit 1}; exit}'
+}
+
+function create_partitions() {
+    local mbrscript="- - 7 *"
+    local gptscript="- - U *"
+    local gptntfsscript="- 1MiB U *\n- - EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 *"
+
+    if [[ "$1" == "dos" ]] || [[ "$1" == "gpt" ]] || [[ "$1" == "gptntfs" ]];
+    then
+        if [[ "$1" == "dos" ]];
+        then
+            echo -e "$mbrscript" | sfdisk "$2"
+
+        elif [[ "$1" == "gpt" ]];
+        then
+            echo -e "$gptscript" | sfdisk "$2"
+
+        elif [[ "$1" == "gptntfs" ]];
+        then
+            echo -e "$gptntfsscript" | sfdisk "$2"
+        fi
+    else
+        echo "${bold} == create_partitions: INTERNAL ERROR ==${normal}"
+        exit 102
+    fi
+}
+
+function write_uefintfs() {
+    cat "$dirpath/uefi-ntfs.img" > "$1"
+}
+
+function extract_iso() {
+    # $1 - isopath
+    # $2 - destdir
+
+    7z x "$1" -o"$2"
+}
+
+function umount_rm_path() {
+    umount "$1" || true
+    rm -r "$1"
+}
+
+function sigint_handler() {
+    umount_rm_path "$partpath"
+}
+
+if [[ ! "$3" ]];
+then
+    echo "Windows 7/8/8.1/10 ISO to Flash Drive burning utility"
+    echo "$(basename "$0")" "<device> <windows iso> <mbr/gpt/gptntfs>"
+    echo
+    echo "Use MBR mode for old computers with BIOS (without UEFI), or for UEFI legacy mode (CSM)."
+    echo "Use GPT mode for new UEFI computers."
+    echo "Use 'gptntfs' mode for custom ISO images with install.wim file greater than 4 GiB."
+    echo "NOTE: gptntfs does not support Secure Boot!"
+    echo
+    echo "${bold} == Removable storage list ==${normal}"
+
+    list_removable_drives
+    exit
+fi
+
+if [[ "$EUID" == "0" ]];
+then
+    dev="$1"
+    isopath="$2"
+    labeltype="$3"
+    partpath="$(mktemp -d /run/winiso-write.XXXXXXXXXX)"
+
+    check_requirements
+    trap sigint_handler INT
+
+    # MBR
+    if [[ "$labeltype" == "mbr" ]];
+    then
+        echo "${bold} == Creating new MBR-formatted partition table ==${normal}"
+        format_drive "dos" "$dev"
+
+        echo "${bold} == Creating NTFS partition ==${normal}"
+        create_partitions "dos" "$dev"
+        mkfs.ntfs -f "${dev}1"
+
+        echo "${bold} == Writing bootloader ==${normal}"
+        ms-sys -7 "${dev}"
+        ms-sys -n "${dev}1"
+
+        echo "${bold} == Mounting data partition ==${normal}"
+        mount "${dev}1" "$partpath"
+
+    # GPT
+    elif [[ "$labeltype" == "gpt" ]];
+    then
+        if check_installwim_gt4gib "$isopath";
+        then
+            echo "${bold} == ERROR: install.wim is greater than 4 GiB ==${normal}"
+            echo "${bold} == ERROR: Please use gptntfs mode ==${normal}"
+            umount_rm_path "$partpath"
+            exit 103
+        fi
+        echo "${bold} == Creating new GPT-formatted partition table ==${normal}"
+        format_drive "gpt" "$dev"
+
+        echo "${bold} == Creating UEFI FAT partition ==${normal}"
+        create_partitions "gpt" "$dev"
+        mkfs.vfat "${dev}1"
+
+        echo "${bold} == Mounting data partition ==${normal}"
+        mount "${dev}1" "$partpath"
+
+    # GPT FAT32 + NTFS
+    elif [[ "$labeltype" == "gptntfs" ]];
+    then
+        echo "${bold} == Creating new GPT-formatted partition table ==${normal}"
+        format_drive "gpt" "$dev"
+
+        echo "${bold} == Creating UEFI FAT and Microsoft NTFS partitions ==${normal}"
+        create_partitions "gptntfs" "$dev"
+        write_uefintfs "${dev}1"
+        mkfs.ntfs -f "${dev}2"
+
+        echo "${bold} == Mounting data partition ==${normal}"
+        mount "${dev}2" "$partpath"
+    fi
+
+    echo "${bold} == Extracting files from ISO to the partition ==${normal}"
+    extract_iso "$isopath" "$partpath"
+
+    echo "${bold} == Unmounting partition ==${normal}"
+    umount_rm_path "$partpath"
+
+    echo "${bold} == All done! ==${normal}"
+else
+    if [[ "$APPIMAGE" ]];
+    then
+        scriptpath="$APPIMAGE"
+    fi;
+
+    privescs=(pkexec sudo)
+    for privesc in ${privescs[*]}; do
+        if command -v "$privesc" > /dev/null; then
+            "$privesc" "$scriptpath" "$@"
+            exit
+        fi
+    done
+
+    echo "${bold} == ERROR: no pkexec or sudo found. ==${normal}"
+    echo "${bold} == ERROR: please run this script as root manually. ==${normal}"
+fi
