@@ -68,6 +68,26 @@ function create_partitions() {
     fi
 }
 
+function get_dev_partition_num() {
+    # $1 - device
+    # $2 - partition number
+
+    if [ -b "${1}${2}" ];
+    then
+        echo "${1}${2}"
+        return
+    fi
+
+    if [ -b "${1}p${2}" ];
+    then
+        echo "${1}p${2}"
+        return
+    fi
+
+    echo "${bold} == get_dev_partition_num: INTERNAL ERROR ==${normal}"
+    exit 105
+}
+
 function write_uefintfs() {
     cat "$dirpath/uefi-ntfs.img" > "$1"
 }
@@ -122,14 +142,14 @@ then
 
         echo "${bold} == Creating NTFS partition ==${normal}"
         create_partitions "dos" "$dev"
-        mkfs.ntfs -f "${dev}1"
+        mkfs.ntfs -f "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Writing bootloader ==${normal}"
         ms-sys -7 "${dev}"
-        ms-sys -n "${dev}1"
+        ms-sys -n "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Mounting data partition ==${normal}"
-        mount "${dev}1" "$partpath"
+        mount "$(get_dev_partition_num "${dev}" "1")" "$partpath"
 
     # GPT
     elif [[ "$labeltype" == "gpt" ]];
@@ -146,10 +166,10 @@ then
 
         echo "${bold} == Creating UEFI FAT partition ==${normal}"
         create_partitions "gpt" "$dev"
-        mkfs.vfat "${dev}1"
+        mkfs.vfat "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Mounting data partition ==${normal}"
-        mount "${dev}1" "$partpath"
+        mount "$(get_dev_partition_num "${dev}" "1")" "$partpath"
 
     # GPT FAT32 + NTFS
     elif [[ "$labeltype" == "gptntfs" ]];
@@ -159,11 +179,11 @@ then
 
         echo "${bold} == Creating UEFI FAT and Microsoft NTFS partitions ==${normal}"
         create_partitions "gptntfs" "$dev"
-        write_uefintfs "${dev}1"
-        mkfs.ntfs -f "${dev}2"
+        write_uefintfs "$(get_dev_partition_num "${dev}" "1")"
+        mkfs.ntfs -f "$(get_dev_partition_num "${dev}" "2")"
 
         echo "${bold} == Mounting data partition ==${normal}"
-        mount "${dev}2" "$partpath"
+        mount "$(get_dev_partition_num "${dev}" "2")" "$partpath"
     fi
 
     echo "${bold} == Extracting files from ISO to the partition ==${normal}"
