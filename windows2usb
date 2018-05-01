@@ -99,6 +99,13 @@ function extract_iso() {
     7z x "$1" -o"$2"
 }
 
+function extract_bootmgfw_from_installwim() {
+    # $1 - install.wim path
+    # $2 - destdir
+
+    7z e "$1" -o"$2" 1/Windows/Boot/EFI/bootmgfw.efi
+}
+
 function umount_rm_path() {
     if [ -d "$1" ];
     then
@@ -132,7 +139,10 @@ then
     dev="$1"
     isopath="$2"
     labeltype="$3"
-    partpath="$(mktemp -d /run/winiso-write.XXXXXXXXXX)"
+    uefimode=
+    [[ "$labeltype" == "gpt" ]] && uefimode=1
+    [[ "$labeltype" == "gptntfs" ]] && uefimode=1
+    partpath="$(mktemp -d /run/windows2usb.XXXXXXXXXX)"
 
     check_requirements
     trap sigint_handler INT EXIT
@@ -191,6 +201,19 @@ then
 
     echo "${bold} == Extracting files from ISO to the partition ==${normal}"
     extract_iso "$isopath" "$partpath"
+
+    if [[ "$uefimode" ]];
+    then
+        if [ ! -f "$partpath/efi/boot/bootx64.efi" ] && \
+           [ ! -f "$partpath/efi/boot/bootia32.efi" ];
+        then
+            echo "${bold} == Extracting UEFI bootloader from install.wim ==${normal}"
+            mkdir -p "$partpath/efi/boot/" || true
+            extract_bootmgfw_from_installwim "$partpath/sources/install.wim" "$partpath/efi/boot/"
+            mv "$partpath/efi/boot/bootmgfw.efi" "$partpath/efi/boot/bootx64.efi"
+            cp "$partpath/efi/boot/bootx64.efi" "$partpath/efi/boot/bootia32.efi"
+        fi
+    fi
 
     echo "${bold} == Unmounting partition ==${normal}"
     umount_rm_path "$partpath"
