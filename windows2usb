@@ -121,6 +121,8 @@ function sigint_handler() {
 if [[ ! "$3" ]];
 then
     echo "Windows 7/8/8.1/10 ISO to Flash Drive burning utility"
+    echo "WARNING: this program will delete all existing data on your drive!"
+    echo
     echo "$(basename "$0")" "<device> <windows iso> <mbr/gpt/gptntfs>"
     echo
     echo "Use MBR mode for old computers with BIOS (without UEFI), or for UEFI legacy mode (CSM)."
@@ -171,6 +173,7 @@ then
         then
             echo "${bold} == ERROR: install.wim is greater than 4 GiB ==${normal}"
             echo "${bold} == ERROR: Please use gptntfs mode ==${normal}"
+            echo "NOTE: gptntfs does not support Secure Boot!"
             umount_rm_path "$partpath"
             exit 103
         fi
