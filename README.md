@@ -21,6 +21,8 @@ Download latest [portable AppImage version](https://github.com/ValdikSS/windows2
 
 The program prints removable storage list if no arguments supplied.
 
+If you don't want to use AppImage, you'll need to install all dependencies and download [uefi-ntfs.img](https://github.com/pbatard/rufus/tree/master/res/uefi) from Rufus project.
+
 ### BIOS Boot
 
 BIOS Boot (Legacy Boot/UEFI-CSM) uses stock Windows 7 MBR and NTFS bootloader, courtesy of [ms-sys](http://ms-sys.sourceforge.net/) project.
