@@ -100,8 +100,11 @@ function extract_iso() {
 }
 
 function umount_rm_path() {
-    umount "$1" || true
-    rm -r "$1"
+    if [ -d "$1" ];
+    then
+        umount "$1" || true
+        rm -r "$1"
+    fi
 }
 
 function sigint_handler() {
@@ -132,7 +135,7 @@ then
     partpath="$(mktemp -d /run/winiso-write.XXXXXXXXXX)"
 
     check_requirements
-    trap sigint_handler INT
+    trap sigint_handler INT EXIT
 
     # MBR
     if [[ "$labeltype" == "mbr" ]];
