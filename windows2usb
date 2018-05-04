@@ -226,12 +226,16 @@ else
     if [[ "$APPIMAGE" ]];
     then
         scriptpath="$APPIMAGE"
-    fi;
+    fi
+
+    [ -f "$1" ] && PARAM1="$(readlink -f -- "$1")" || PARAM1="$1"
+    [ -f "$2" ] && PARAM2="$(readlink -f -- "$2")" || PARAM2="$2"
+    shift; shift;
 
     privescs=(pkexec sudo)
     for privesc in ${privescs[*]}; do
         if command -v "$privesc" > /dev/null; then
-            "$privesc" "$scriptpath" "$@"
+            "$privesc" "$scriptpath" "$PARAM1" "$PARAM2" "$@"
             exit
         fi
     done
