@@ -70,3 +70,4 @@ This script uses:
 * **lsblk** and **sfdisk** from [util-linux](https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/)
 * [**ms-sys**](http://ms-sys.sourceforge.net/) for native Windows 7 MBR and NTFS bootloaders
 * [**p7zip**](https://www.7-zip.org/) for ISO extraction
+* [**autofsync**](https://github.com/i-rinat/autofsync/) to prevent filesystem bufferbloat and properly show copying progress (AppImage only)
