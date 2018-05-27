@@ -39,6 +39,10 @@ function format_drive() {
     fi
 }
 
+function get_iso_name() {
+    7z l "$1" | awk '/Comment = / {print $3; exit 0}'
+}
+
 function check_installwim_gt4gib() {
     7z l "$1" | awk '($6 ~ /install.wim/) {if ($4 > 4294967296) {exit 0}; exit 1}'
 }
@@ -140,6 +144,7 @@ if [[ "$EUID" == "0" ]];
 then
     dev="$1"
     isopath="$2"
+    isolabel=""
     labeltype="$3"
     uefimode=
     [[ "$labeltype" == "gpt" ]] && uefimode=1
@@ -147,6 +152,14 @@ then
     partpath="$(mktemp -d /run/windows2usb.XXXXXXXXXX)"
 
     check_requirements
+
+    isolabel="$(get_iso_name "$isopath")"
+    if [ $? -ne 0 ]
+    then
+        isolabel=""
+    fi
+    echo "${bold} == Working with ISO $isolabel ==${normal}"
+
     trap sigint_handler INT EXIT
 
     # MBR
@@ -157,7 +170,7 @@ then
 
         echo "${bold} == Creating NTFS partition ==${normal}"
         create_partitions "dos" "$dev"
-        mkfs.ntfs -f "$(get_dev_partition_num "${dev}" "1")"
+        mkfs.ntfs -L "$isolabel" -f "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Writing bootloader ==${normal}"
         ms-sys -7 "${dev}"
@@ -182,7 +195,7 @@ then
 
         echo "${bold} == Creating UEFI FAT partition ==${normal}"
         create_partitions "gpt" "$dev"
-        mkfs.vfat "$(get_dev_partition_num "${dev}" "1")"
+        mkfs.vfat -n "${isolabel:0:11}" "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Mounting data partition ==${normal}"
         mount "$(get_dev_partition_num "${dev}" "1")" "$partpath"
@@ -196,7 +209,7 @@ then
         echo "${bold} == Creating UEFI FAT and Microsoft NTFS partitions ==${normal}"
         create_partitions "gptntfs" "$dev"
         write_uefintfs "$(get_dev_partition_num "${dev}" "1")"
-        mkfs.ntfs -f "$(get_dev_partition_num "${dev}" "2")"
+        mkfs.ntfs -L "$isolabel" -f "$(get_dev_partition_num "${dev}" "2")"
 
         echo "${bold} == Mounting data partition ==${normal}"
         mount "$(get_dev_partition_num "${dev}" "2")" "$partpath"
