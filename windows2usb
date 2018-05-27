@@ -24,6 +24,20 @@ function check_requirements() {
     done
 }
 
+function check_iso_and_device() {
+    if [ ! -f "$1" ]
+    then
+        echo "${bold} == ERROR: ISO file not found! ==${normal}"
+        exit 106
+    fi
+
+    if [ ! -b "$2" ]
+    then
+        echo "${bold} == ERROR: Device file not found! ==${normal}"
+        exit 107
+    fi
+}
+
 function list_removable_drives() {
     lsblk -d -I 8 -o RM,NAME,SIZE,MODEL | \
         awk '($1 == 1) {print "/dev/" substr($0, index($0, $2))}'
@@ -149,9 +163,9 @@ then
     uefimode=
     [[ "$labeltype" == "gpt" ]] && uefimode=1
     [[ "$labeltype" == "gptntfs" ]] && uefimode=1
-    partpath="$(mktemp -d /run/windows2usb.XXXXXXXXXX)"
 
     check_requirements
+    check_iso_and_device "$isopath" "$dev"
 
     isolabel="$(get_iso_name "$isopath")"
     if [ $? -ne 0 ]
@@ -160,6 +174,7 @@ then
     fi
     echo "${bold} == Working with ISO $isolabel ==${normal}"
 
+    partpath="$(mktemp -d /run/windows2usb.XXXXXXXXXX)"
     trap sigint_handler INT EXIT
 
     # MBR
