@@ -63,7 +63,7 @@ function check_installwim_gt4gib() {
 
 function create_partitions() {
     local mbrscript="- - 7 *"
-    local gptscript="- - U *"
+    local gptscript="- - EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 *"
     local gptntfsscript="- 1MiB U *\n- - EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 *"
 
     if [[ "$1" == "dos" ]] || [[ "$1" == "gpt" ]] || [[ "$1" == "gptntfs" ]];
