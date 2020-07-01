@@ -18,7 +18,7 @@ function check_requirements() {
     for req in ${reqs[*]}; do
         if ! command -v "$req" > /dev/null;
         then
-            echo "${bold} == ERROR: $req is required but not found ==${normal}"
+            echo "${bold} == ERROR: $req package is required in your system, but not found ==${normal}"
             exit 104
         fi
     done
