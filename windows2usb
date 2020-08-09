@@ -167,6 +167,11 @@ then
     uefimode=
     [[ "$labeltype" == "gpt" ]] && uefimode=1
     [[ "$labeltype" == "gptntfs" ]] && uefimode=1
+    mountntfs_cmd="mount.ntfs-3g"
+    if ! command -v "$mountntfs_cmd" > /dev/null;
+    then
+        mountntfs_cmd="mount"
+    fi
 
     check_requirements
     check_iso_and_device "$isopath" "$dev"
@@ -196,7 +201,7 @@ then
         ms-sys -n "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Mounting data partition ==${normal}"
-        mount "$(get_dev_partition_num "${dev}" "1")" "$partpath"
+        "$mountntfs_cmd" "$(get_dev_partition_num "${dev}" "1")" "$partpath"
 
     # GPT
     elif [[ "$labeltype" == "gpt" ]];
@@ -231,7 +236,7 @@ then
         mkfs.ntfs -L "$isolabel" -f "$(get_dev_partition_num "${dev}" "2")"
 
         echo "${bold} == Mounting data partition ==${normal}"
-        mount "$(get_dev_partition_num "${dev}" "2")" "$partpath"
+        "$mountntfs_cmd" "$(get_dev_partition_num "${dev}" "2")" "$partpath"
     fi
 
     echo "${bold} == Extracting files from ISO to the partition ==${normal}"
