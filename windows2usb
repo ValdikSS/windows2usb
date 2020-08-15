@@ -192,6 +192,9 @@ then
         echo "${bold} == Creating new MBR-formatted partition table ==${normal}"
         format_drive "dos" "$dev"
 
+        echo "${bold} == Waiting 3 seconds to settle new partition layout ==${normal}"
+        sleep 3
+
         echo "${bold} == Creating NTFS partition ==${normal}"
         create_partitions "dos" "$dev"
         mkfs.ntfs -L "$isolabel" -f "$(get_dev_partition_num "${dev}" "1")"
@@ -217,6 +220,9 @@ then
         echo "${bold} == Creating new GPT-formatted partition table ==${normal}"
         format_drive "gpt" "$dev"
 
+        echo "${bold} == Waiting 3 seconds to settle new partition layout ==${normal}"
+        sleep 3
+
         echo "${bold} == Creating UEFI FAT partition ==${normal}"
         create_partitions "gpt" "$dev"
         mkfs.vfat -n "${isolabel:0:11}" "$(get_dev_partition_num "${dev}" "1")"
@@ -229,6 +235,9 @@ then
     then
         echo "${bold} == Creating new GPT-formatted partition table ==${normal}"
         format_drive "gpt" "$dev"
+
+        echo "${bold} == Waiting 3 seconds to settle new partition layout ==${normal}"
+        sleep 3
 
         echo "${bold} == Creating UEFI FAT and Microsoft NTFS partitions ==${normal}"
         create_partitions "gptntfs" "$dev"
