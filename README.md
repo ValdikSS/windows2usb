@@ -61,7 +61,7 @@ If your ISO contains install.wim greater than 4 GiB, `gpt` mode will automatical
 
 ## Alternatives
 
-[WoeUSB](https://github.com/slacka/WoeUSB)—does not support NTFS partitioning and install.wim > 4GiB; uses GRUB for BIOS Boot.  
+[WoeUSB](https://github.com/WoeUSB/WoeUSB)—uses GRUB for BIOS Boot.  
 [bootiso](https://github.com/jsamr/bootiso/)—supports Windows and Linux ISOs.  
 [Ventoy](https://www.ventoy.net/en/index.html)—Booting multi-tool with brilliant support of Windows ISO direct loading.
 
