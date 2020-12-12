@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+
+trap clean EXIT
+
+function clean() {
+  rm -f "$pid_pipe" "$zenity_pipe" "$zenity_status_pipe" "$windows2usb_status_pipe"
+  kill 0
+}
+
+
+log_file="/tmp/windows2usb.log"
+
+pid_pipe="$(mktemp -u)"
+zenity_pipe="$(mktemp -u)"
+zenity_status_pipe="$(mktemp -u)"
+windows2usb_status_pipe="$(mktemp -u)"
+
+mkfifo "$pid_pipe"
+mkfifo "$zenity_pipe"
+mkfifo "$zenity_status_pipe"
+mkfifo "$windows2usb_status_pipe"
+
+
+devices_available="$(lsblk -dn -I 8 -o RM,NAME,SIZE,MODEL | awk '($1 == 1) { print "FALSE " substr($0, index($0, $2)) }')"
+
+while [[ -z "$device" ]]
+do
+  device="$(zenity --list --radiolist \
+    --title='Choose device' \
+    --column='' --column='ID' --column='Size' --column='Name' \
+    ${devices_available})"
+
+  test $? -eq 1 && exit 1
+done
+
+while [[ -z "$image" ]]
+do
+  image="$(zenity --file-selection --title='Select image')"
+
+  test $? -eq 1 && exit 1
+done
+
+while [[ -z "$mode" ]]
+do
+  mode="$(zenity --list --radiolist \
+    --title='Select bootloader mode' \
+    --column='' --column='ID' --column='Mode' --hide-column=2 \
+    FALSE 'mbr'     'BIOS Boot' \
+    TRUE  'gpt'     'UEFI Boot' \
+    FALSE 'gptntfs' 'UEFI Boot with NTFS partition')"
+
+  test $? -eq 1 && exit 1
+done
+
+echo "-------------------" >> "$log_file" 2>&1
+echo "$(date '+%Y-%m-%d %H:%M:%S')" >> "$log_file" 2>&1
+echo "-------------------" >> "$log_file" 2>&1
+
+
+(
+  zenity --progress --title='Writing' --pulsate --auto-close < <(tail -f "$zenity_pipe") &
+
+  zenity_pid="$!"
+  echo "$zenity_pid" > "$pid_pipe"
+
+  wait "$zenity_pid"
+  echo "$?" > "$zenity_status_pipe"
+) &
+
+read -st 3 zenity_pid <> "$pid_pipe"
+
+
+(
+  windows2usb "/dev/${device}" "$image" "$mode" >> "$log_file" 2>&1 &
+
+  windows2usb_pid="$!"
+  echo "$windows2usb_pid" > "$pid_pipe"
+
+  wait "$windows2usb_pid"
+  echo "$?" > "$windows2usb_status_pipe"
+) &
+
+read -st 3 windows2usb_pid <> "$pid_pipe"
+
+
+while sleep 1
+do
+  if ! kill -0 "$zenity_pid" >/dev/null 2>&1 && [[ -p "$zenity_status_pipe" ]]
+  then
+    read -st 3 zenity_status <> "$zenity_status_pipe" || true
+    rm -f "$zenity_status_pipe"
+    
+    if [[ -z "$zenity_status" ]] ||  [[ "$zenity_status" != 0 ]]
+    then
+      echo 'Cancel'
+      kill "$windows2usb_pid"
+      exit 1
+    else
+      exit 0
+    fi
+  fi
+
+  if ! kill -0 "$windows2usb_pid" >/dev/null 2>&1 && [[ -p "$windows2usb_status_pipe" ]]
+  then
+    read -st 3 windows2usb_status <> "$windows2usb_status_pipe" || true
+    rm -f "$windows2usb_status_pipe"
+
+    echo '100' > "$zenity_pipe"
+
+    if [[ -z "$windows2usb_status" ]] || [[ "$windows2usb_status" != 0 ]]
+    then
+      zenity --error --text="Error occured, see log at ${log_file}"
+      exit 1
+    else
+      zenity --info --text="Image has been successfully written!"
+      exit 0
+    fi
+  fi
+done
