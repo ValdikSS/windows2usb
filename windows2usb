@@ -331,6 +331,8 @@ then
     fi
 
     echo "${bold} == Unmounting partition ==${normal}"
+    echo "NOTE: If this process takes very long to complete, your system is misconfigured!"
+    echo "More info: https://github.com/ValdikSS/windows2usb/issues/3#issuecomment-771534058"
     umount_rm_path "$partpath" "$isomountpath"
 
     echo "${bold} == All done! ==${normal}"
