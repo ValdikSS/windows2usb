@@ -39,8 +39,13 @@ function check_iso_and_device() {
 }
 
 function list_removable_drives() {
-    lsblk -d -I 8 -o RM,NAME,SIZE,MODEL | \
-        awk '($1 == 1) {print "/dev/" substr($0, index($0, $2))}'
+    lsblk=$(lsblk -d -I 8 -o RM,NAME,SIZE,MODEL | \
+        awk '($1 == 1) {print "/dev/" substr($0, index($0, $2))}')
+    if [[ "$lsblk" ]]; then
+        echo "$lsblk"
+    else
+        echo "No removable storage found!"
+    fi
 }
 
 function format_drive() {
