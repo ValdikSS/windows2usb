@@ -52,12 +52,12 @@ If you don't want to use AppImage, you'll need to install all dependencies and d
 
 ### Feature Matrix
 
-|Modes       |Legacy/UEFI-CSM Boot|UEFI Boot|Large ISO (>4GB)|Secure Boot|
-|:----------:|:------------------:|:-------:|:--------------:|:---------:|
-|mbr(hybrid) |Supported           |Supported|Supported       |Supported  |
-|gpt         |No                  |Supported|No              |Supported  |
-|gptntfs     |No                  |Partial  |Supported       |Supported  |
-|gpt+uefintfs|No                  |Supported|Supported       |No         |
+|Modes       |Legacy/UEFI-CSM Boot|UEFI Boot|Large ISO (>4GB)|Secure Boot|File System|Part Table|
+|:----------:|:------------------:|:-------:|:--------------:|:---------:|:---------:|:--------:|
+|mbr(hybrid) |Supported           |Supported|Supported       |Supported  |FAT32      |MBR       |
+|gpt         |No                  |Supported|Supported       |Supported  |FAT32      |GPT       |
+|gptntfs     |No                  |Partial  |Supported       |Supported  |NTFS       |GPT       |
+|gpt+uefintfs|No                  |Supported|Supported       |No         |NTFS       |GPT       |
 
 ### BIOS Boot
 
