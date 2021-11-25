@@ -244,7 +244,7 @@ then
         mkfs.vfat -n "${isolabel:0:11}" "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Writing bootloader ==${normal}"
-        ms-sys -7 "${dev}"
+        ms-sys -7 -f "${dev}"
         ms-sys -e "$(get_dev_partition_num "${dev}" "1")"
 
         echo "${bold} == Mounting data partition ==${normal}"
