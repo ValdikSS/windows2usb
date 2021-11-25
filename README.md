@@ -50,6 +50,15 @@ The program prints removable storage list if no arguments are supplied.
 
 If you don't want to use AppImage, you'll need to install all dependencies and download [uefi-ntfs.img](https://github.com/pbatard/rufus/tree/master/res/uefi) from Rufus project.
 
+### Feature Matrix
+
+|Modes|Legacy/UEFI-CSM Boot|UEFI Boot|Large ISO (>4GB)|Secure Boot|
+|---|---|---|---|---|
+|mbr(hybrid)|Supported|Supported|Supported|Supported|
+|gpt|No|Supported|No|Supported|
+|gptntfs|No|Partial|Supported|Supported|
+|gpt+uefintfs|No|Supported|Supported|No|
+
 ### BIOS Boot
 
 BIOS Boot (Legacy Boot/UEFI-CSM) uses stock Windows 7 MBR and FAT32 bootloader, courtesy of [ms-sys](http://ms-sys.sourceforge.net/) project.
