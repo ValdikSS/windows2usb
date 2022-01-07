@@ -93,6 +93,9 @@ function create_partitions() {
     else
         echo "${bold} == create_partitions: INTERNAL ERROR ==${normal}"
         exit 102
+    # Wait 1 second to settle new partition table
+    # See bug #24
+    sleep 1
     fi
 }
 
