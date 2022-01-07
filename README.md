@@ -17,9 +17,9 @@ Features:
 Windows 7/8/8.1/10/11 ISO to Flash Drive burning utility
 WARNING: this program will delete all existing data on your drive!
 
-windows2usb <device> <windows iso> <mbr/gpt/gptntfs/gpt+uefintfs>
+windows2usb <device> <windows iso> [mbr/gpt/gptntfs/gpt+uefintfs]
 
-mbr mode: the most universal, RECOMMENDED method.
+mbr mode: the most universal, RECOMMENDED and DEFAULT method.
    This mode creates MBR partition table with FAT32 partition,
    installs BIOS and UEFI bootloaders, supports Secure Boot.
    install.wim file larger than 4 GiB will be split.
@@ -44,7 +44,11 @@ gpt+uefintfs mode: alternative hacky installation method, not recommended.
 
 Download latest [portable AppImage version](https://github.com/ValdikSS/windows2usb/releases) from the **Releases** page, set *execution bit* (`chmod +x windows2usb-*.AppImage`) and run it from the terminal.
 
-`windows2usb <device> <windows iso> <mbr/gpt/gptntfs/gpt+uefintfs>"`
+`windows2usb <device> <windows iso>`
+
+For example:
+
+`./windows2usb.AppImage /dev/sdz /home/valdikss/windows10.iso`
 
 The program prints removable storage list if no arguments are supplied.
 

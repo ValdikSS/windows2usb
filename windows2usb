@@ -172,14 +172,14 @@ function sigint_handler() {
     umount_rm_path "$partpath" "$isomountpath"
 }
 
-if [[ ! "$3" ]];
+if [[ ! "$2" ]];
 then
     echo "${bold}Windows 7/8/8.1/10/11 ISO to Flash Drive burning utility"
     echo "WARNING: this program will delete all existing data on your drive!${normal}"
     echo
-    echo "$(basename "$0")" "<device> <windows iso> <mbr/gpt/gptntfs/gpt+uefintfs>"
+    echo "$(basename "$0")" "<device> <windows iso> [mbr/gpt/gptntfs/gpt+uefintfs]"
     echo
-    echo "mbr mode: the most universal, RECOMMENDED method."
+    echo "mbr mode: the most universal, RECOMMENDED and DEFAULT method."
     echo "   This mode creates MBR partition table with FAT32 partition,"
     echo "   installs BIOS and UEFI bootloaders, supports Secure Boot."
     echo "   install.wim file larger than 4 GiB will be split."
@@ -211,6 +211,7 @@ then
     isopath="$2"
     isolabel=""
     labeltype="$3"
+    [[ ! "$labeltype" ]] && labeltype="mbr"
     mountntfs_cmd="mount.ntfs-3g"
     if ! command -v "$mountntfs_cmd" > /dev/null;
     then
