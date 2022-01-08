@@ -151,10 +151,13 @@ function split_wim() {
 }
 
 function extract_bootmgfw_from_installwim() {
-    # $1 - install.wim path
-    # $2 - destdir
+    # $1 - isopath
+    # $2 - isomountpath
+    # $3 - destdir
 
-    7z e "$1" -o"$2" 1/Windows/Boot/EFI/bootmgfw.efi
+    mount -o ro "$1" "$2"
+    7z e "$2/sources/install.wim" -o"$3/efi/boot/" 1/Windows/Boot/EFI/bootmgfw.efi
+    umount "$2"
 }
 
 function umount_rm_path() {
@@ -318,7 +321,7 @@ then
     then
         echo "${bold} == Extracting UEFI bootloader from install.wim ==${normal}"
         mkdir -p "$partpath/efi/boot/" || true
-        extract_bootmgfw_from_installwim "$partpath/sources/install.wim" "$partpath/efi/boot/"
+        extract_bootmgfw_from_installwim "$isopath" "$isomountpath" "$partpath"
         mv "$partpath/efi/boot/bootmgfw.efi" "$partpath/efi/boot/bootx64.efi"
         cp "$partpath/efi/boot/bootx64.efi" "$partpath/efi/boot/bootia32.efi"
     fi
