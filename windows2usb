@@ -4,7 +4,7 @@ set -f # noglob
 set +o braceexpand # disable braceexpand
 shopt -s nocasematch # for "if labeltype"
 
-export LANG=C
+export LANG=C.utf8
 
 bold="$(tput bold)"
 normal="$(tput sgr0)"
