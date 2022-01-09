@@ -64,7 +64,7 @@ function get_iso_name() {
 }
 
 function check_installwim_gt4gib() {
-    7z l "$1" | awk '($6 ~ /install.wim/) {if ($4 > 4294967296) {exit 0}; exit 1}'
+    7z l "$1" | awk '($6 ~ /install.wim/) {if ($4 > 4294967296) {exit 0}; exit 1} END {exit 1}'
 }
 
 function create_partitions() {
