@@ -94,10 +94,10 @@ function create_partitions() {
     else
         echo "${bold} == create_partitions: INTERNAL ERROR ==${normal}"
         exit 102
+    fi
     # Wait 1 second to settle new partition table
     # See bug #24
     sleep 1
-    fi
 }
 
 function get_dev_partition_num() {
