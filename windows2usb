@@ -12,7 +12,7 @@ scriptpath="$(readlink -f -- "$0")"
 dirpath="$(dirname "$scriptpath")"
 
 
-function check_requirements() {
+check_requirements() {
     local reqs=(awk lsblk 7z mkfs.vfat mkfs.ntfs sfdisk ms-sys mktemp wimsplit)
 
     for req in ${reqs[*]}; do
@@ -24,7 +24,7 @@ function check_requirements() {
     done
 }
 
-function check_iso_and_device() {
+check_iso_and_device() {
     if [ ! -f "$1" ]
     then
         echo "${bold} == ERROR: ISO file not found! ==${normal}"
@@ -38,7 +38,7 @@ function check_iso_and_device() {
     fi
 }
 
-function list_removable_drives() {
+list_removable_drives() {
     lsblk=$(lsblk -d -I 8 -o RM,NAME,SIZE,MODEL | \
         awk '($1 == 1) {print "/dev/" substr($0, index($0, $2))}')
     if [[ "$lsblk" ]]; then
@@ -48,7 +48,7 @@ function list_removable_drives() {
     fi
 }
 
-function format_drive() {
+format_drive() {
     if [[ "$1" == "dos" ]] || [[ "$1" == "gpt" ]];
     then
         echo "label: $1" | sfdisk "$2"
@@ -59,15 +59,15 @@ function format_drive() {
     fi
 }
 
-function get_iso_name() {
+get_iso_name() {
     7z l "$1" | awk '/Comment = / {print $3; exit 0}'
 }
 
-function check_installwim_gt4gib() {
+check_installwim_gt4gib() {
     7z l "$1" | awk 'BEGIN {doend=1} ($6 ~ /install.wim/) {if ($4 > 4294967296) {doend=0; exit 0}; doend=0; exit 1} END {if (doend) {exit 1}}'
 }
 
-function create_partitions() {
+create_partitions() {
     local mbrscript="- - 7 *"
     local gptscript="- - EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 *"
     local gptuefintfsscript="- 1MiB U *\n- - EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 *"
@@ -100,7 +100,7 @@ function create_partitions() {
     sleep 1
 }
 
-function get_dev_partition_num() {
+get_dev_partition_num() {
     # $1 - device
     # $2 - partition number
 
@@ -120,7 +120,7 @@ function get_dev_partition_num() {
     exit 105
 }
 
-function write_uefintfs() {
+write_uefintfs() {
     if [ -a "$dirpath/uefi-ntfs.img" ]; then
         cat "$dirpath/uefi-ntfs.img" > "$1"
     elif [ -a "/usr/share/windows2usb/uefi-ntfs.img" ]; then
@@ -128,7 +128,7 @@ function write_uefintfs() {
     fi
 }
 
-function extract_iso() {
+extract_iso() {
     # $1 - isopath
     # $2 - destdir
     # $3 - exclude install.wim extraction flag
@@ -140,7 +140,7 @@ function extract_iso() {
     fi
 }
 
-function split_wim() {
+split_wim() {
     # $1 - isopath
     # $2 - isomountpath
     # $3 - destdir
@@ -150,7 +150,7 @@ function split_wim() {
     umount "$2"
 }
 
-function extract_bootmgfw_from_installwim() {
+extract_bootmgfw_from_installwim() {
     # $1 - isopath
     # $2 - isomountpath
     # $3 - destdir
@@ -163,7 +163,7 @@ function extract_bootmgfw_from_installwim() {
     umount "$2"
 }
 
-function umount_rm_path() {
+umount_rm_path() {
     if [ -d "$1" ]; then
         umount "$1" || true
         rm -r "$1"
@@ -175,7 +175,7 @@ function umount_rm_path() {
     fi
 }
 
-function sigint_handler() {
+sigint_handler() {
     umount_rm_path "$partpath" "$isomountpath"
 }
 
