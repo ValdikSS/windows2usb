@@ -6,7 +6,7 @@ shopt -s nocasematch # for "if labeltype"
 
 export LANG=C.utf8
 
-Header='
+header='
 | __        _____ _   _     ____    _   _ ____  ____   |
 | \ \      / /_ _| \ | |   |___ \  | | | / ___|| __ )  |
 |  \ \ /\ / / | ||  \| |     __) | | | | \___ \|  _ \  |
@@ -194,7 +194,7 @@ function sigint_handler() {
 
 if [[ ! "$2" ]];
 then
-    echo "${bold}${smso}$Header${rmso}"
+    echo "${bold}${smso}${header}${rmso}"
     echo "${blink}${red}WARNING: this program will delete all existing data on your drive!${normal}"
     echo
     echo "$(basename "$0")" "<device> <windows iso> [mbr/gpt/gptntfs/gpt+uefintfs]"
