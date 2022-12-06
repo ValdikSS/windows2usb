@@ -6,8 +6,21 @@ shopt -s nocasematch # for "if labeltype"
 
 export LANG=C.utf8
 
+Header='
+| __        _____ _   _     ____    _   _ ____  ____   |
+| \ \      / /_ _| \ | |   |___ \  | | | / ___|| __ )  |
+|  \ \ /\ / / | ||  \| |     __) | | | | \___ \|  _ \  |
+|   \ V  V /  | || |\  |    / __/  | |_| |___) | |_) | |
+|    \_/\_/  |___|_| \_(_) |_____|  \___/|____/|____/  |
+========================================================
+.    Windows 7+ ISO to Flash Drive burning utility     .'
+
 bold="$(tput bold)"
 normal="$(tput sgr0)"
+blink="$(tput blink)"
+red="$(tput setaf 1)"
+smso="$(tput smso)"
+rmso="$(tput rmso)"
 scriptpath="$(readlink -f -- "$0")"
 dirpath="$(dirname "$scriptpath")"
 
@@ -181,8 +194,8 @@ function sigint_handler() {
 
 if [[ ! "$2" ]];
 then
-    echo "${bold}Windows 7/8/8.1/10/11 ISO to Flash Drive burning utility"
-    echo "WARNING: this program will delete all existing data on your drive!${normal}"
+    echo "${bold}${smso}$Header${rmso}"
+    echo "${blink}${red}WARNING: this program will delete all existing data on your drive!${normal}"
     echo
     echo "$(basename "$0")" "<device> <windows iso> [mbr/gpt/gptntfs/gpt+uefintfs]"
     echo
