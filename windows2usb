@@ -26,7 +26,7 @@ dirpath="$(dirname "$scriptpath")"
 
 
 function check_requirements() {
-    local reqs=(awk lsblk 7z mkfs.vfat mkfs.ntfs sfdisk ms-sys mktemp wimsplit)
+    local reqs=(awk lsblk 7z mkfs.vfat mkfs.ntfs sfdisk ms-sys mktemp wimsplit tr)
 
     for req in ${reqs[*]}; do
         if ! command -v "$req" > /dev/null;
@@ -74,6 +74,12 @@ function format_drive() {
 
 function get_iso_name() {
     7z l "$1" | awk '/Comment = / {print $3; exit 0}'
+}
+
+function sanitize_iso_name() {
+    # FAT32 does not allow certain characters in names, see
+    # https://github.com/dosfstools/dosfstools/blob/1da41f0e70dcbfb874e8191c639b91fa58205ea4/src/fatlabel.c#L96
+    echo "$1" | tr -d '*?.,;:/\\|+=<>[]"'
 }
 
 function check_installwim_gt4gib() {
@@ -257,6 +263,8 @@ then
     # MBR FAT32
     if [[ "$labeltype" == "mbr" ]];
     then
+        isolabel="$(sanitize_iso_name "$isolabel")"
+
         echo "${bold} == Creating new MBR-formatted partition table ==${normal}"
         format_drive "dos" "$dev"
 
@@ -274,6 +282,8 @@ then
     # GPT FAT32
     elif [[ "$labeltype" == "gpt" ]];
     then
+        isolabel="$(sanitize_iso_name "$isolabel")"
+
         echo "${bold} == Creating new GPT-formatted partition table ==${normal}"
         format_drive "gpt" "$dev"
 
