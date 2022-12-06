@@ -36,7 +36,8 @@ gptntfs mode: all the same as 'gpt' but NTFS is used.
 
 gpt+uefintfs mode: alternative hacky installation method, not recommended.
    This mode uses NTFS partition and third-party 'uefintfs' bootloader.
-   GPT+NTFS(data)+FAT32(efi), UEFI only, NO Secure Boot support.
+   GPT+NTFS(data)+FAT32(efi), UEFI only, supports Secure Boot
+   (since uefintfs Oct 23, 2021 release).
    Large install.wim file will not be split.
 ```
 
@@ -61,7 +62,7 @@ If you don't want to use AppImage, you'll need to install all dependencies and d
 |mbr(hybrid) |Supported           |Supported|Supported       |Supported  |FAT32      |MBR       |
 |gpt         |No                  |Supported|Supported       |Supported  |FAT32      |GPT       |
 |gptntfs     |No                  |Partial  |Supported       |Supported  |NTFS       |GPT       |
-|gpt+uefintfs|No                  |Supported|Supported       |No         |NTFS       |GPT       |
+|gpt+uefintfs|No                  |Supported|Supported       |Supported  |NTFS       |GPT       |
 
 ### BIOS Boot
 
@@ -89,7 +90,7 @@ A special 'gpt+uefintfs' mode uses [uefi-ntfs](https://github.com/pbatard/uefi-n
 
 This mode was included earlier to work with installation disks where install.wim file is greater than 4 GiB, but since then split WIM file functionality was introduced, and now this mode may be considered obsolete.
 
-This mode does not support Secure Boot (uefi-ntfs bootloader is not signed by Microsoft or other trusted party).
+uefi-ntfs bootloader is signed by Microsoft since Oct 23, 2021 release and supports Secure Boot.
 
 ## Alternatives
 
@@ -106,3 +107,4 @@ This script uses:
 * [**p7zip**](https://www.7-zip.org/) for ISO extraction
 * [**autofsync**](https://github.com/i-rinat/autofsync/) to prevent filesystem bufferbloat and properly show copying progress (AppImage only)
 * [**wimlib**](https://wimlib.net/) to split large install.wim files to fit FAT32 partition
+* [**uefi-ntfs**](https://github.com/pbatard/uefi-ntfs/)

@@ -222,7 +222,8 @@ then
     echo
     echo "gpt+uefintfs mode: alternative hacky installation method, not recommended."
     echo "   This mode uses NTFS partition and third-party 'uefintfs' bootloader."
-    echo "   GPT+NTFS(data)+FAT32(efi), UEFI only, NO Secure Boot support."
+    echo "   GPT+NTFS(data)+FAT32(efi), UEFI only, supports Secure Boot"
+    echo "   (since uefintfs Oct 23, 2021 release)."
     echo "   Large install.wim file will not be split."
     echo
     echo "${bold} == Removable storage list ==${normal}"
