@@ -140,9 +140,9 @@ function get_dev_partition_num() {
 }
 
 function write_uefintfs() {
-    if [ -a "$dirpath/uefi-ntfs.img" ]; then
+    if [ -e "$dirpath/uefi-ntfs.img" ]; then
         cat "$dirpath/uefi-ntfs.img" > "$1"
-    elif [ -a "/usr/share/windows2usb/uefi-ntfs.img" ]; then
+    elif [ -e "/usr/share/windows2usb/uefi-ntfs.img" ]; then
         cat "/usr/share/windows2usb/uefi-ntfs.img" > "$1"
     fi
 }
