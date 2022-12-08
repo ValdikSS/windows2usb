@@ -174,11 +174,11 @@ function extract_bootmgfw_from_installwim() {
     # $2 - isomountpath
     # $3 - destdir
 
-    local fpath="$2/sources/install.wim"
-    [ ! -a "$fpath" ] && fpath="$2/sources/install.esd"
-
     mount -o ro "$1" "$2"
-    7z e "$fpath" -o"$3/efi/boot/" '?/Windows/Boot/EFI/bootmgfw.efi'
+    local fpath="$2/sources/install.wim"
+    [ ! -e "$fpath" ] && fpath="$2/sources/install.esd"
+
+    7z e "$fpath" -aoa -o"$3/efi/boot/" '?/Windows/Boot/EFI/bootmgfw.efi'
     umount "$2"
 }
 
