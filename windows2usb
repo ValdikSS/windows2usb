@@ -349,8 +349,12 @@ then
         echo "${bold} == Extracting UEFI bootloader from install.wim ==${normal}"
         mkdir -p "$partpath/efi/boot/" || true
         extract_bootmgfw_from_installwim "$isopath" "$isomountpath" "$partpath"
-        mv "$partpath/efi/boot/bootmgfw.efi" "$partpath/efi/boot/bootx64.efi"
-        cp "$partpath/efi/boot/bootx64.efi" "$partpath/efi/boot/bootia32.efi"
+        if [ -e "$partpath/efi/boot/bootmgfw.efi" ]; then
+            mv "$partpath/efi/boot/bootmgfw.efi" "$partpath/efi/boot/bootx64.efi"
+            cp "$partpath/efi/boot/bootx64.efi" "$partpath/efi/boot/bootia32.efi"
+        else
+            echo "NOTE: your ISO file does not have UEFI bootloader, UEFI boot would be unavailable!"
+        fi
     fi
 
     echo "${bold} == Unmounting partition ==${normal}"
